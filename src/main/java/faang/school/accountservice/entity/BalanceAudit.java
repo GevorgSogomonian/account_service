@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -37,6 +38,7 @@ public class BalanceAudit {
     private long actualAmount;
 
     @Column(name = "transaction_id", nullable = false)
+    @Version
     private long transactionId;
 
     @ManyToOne

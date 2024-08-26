@@ -37,7 +37,6 @@ public class BalanceService {
         Balance balance = balanceMapper.mapBalanceDtoToEntity(balanceDto);
         balance.setCreatedAt(LocalDateTime.now());
         balance.setUpdateAt(LocalDateTime.now());
-        incrementVersionAccount(balance);
 
         balance = balanceRepository.save(balance);
         saveBalanceAudit(balance);
@@ -50,7 +49,6 @@ public class BalanceService {
         Balance balance = findEntityById(balanceDto.getId(), balanceRepository);
         balance.setAuthorizationAmount(balanceDto.getAuthorizationAmount());
         balance.setActualAmount(balanceDto.getActualAmount());
-        incrementVersionAccount(balance);
         balance.setUpdateAt(LocalDateTime.now());
 
         balance = balanceRepository.save(balance);
@@ -71,15 +69,8 @@ public class BalanceService {
         return entity.get();
     }
 
-    private void incrementVersionAccount(Balance balance) {
-        long version = balance.getVersionBalance();
-        balance.setVersionBalance(++version);
-    }
-
     private void saveBalanceAudit(Balance balance) {
         BalanceAudit balanceAudit = balanceAuditMapper.mapBalanceToBalanceAudit(balance);
-        long transactionId = balanceAudit.getTransactionId();
-        balanceAudit.setTransactionId(++transactionId);
         balanceAuditRepository.save(balanceAudit);
     }
 }

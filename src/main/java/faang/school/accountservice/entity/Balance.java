@@ -1,5 +1,6 @@
 package faang.school.accountservice.entity;
 
+import faang.school.accountservice.model.Account;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,6 +13,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.Id;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Version;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -48,6 +50,7 @@ public class Balance {
     private LocalDateTime updateAt;
 
     @Column(name = "version_balance", nullable = false)
+    @Version
     private long versionBalance;
 
     @OneToMany(mappedBy = "balance")
