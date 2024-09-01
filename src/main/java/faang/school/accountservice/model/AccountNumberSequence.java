@@ -13,9 +13,12 @@ import lombok.*;
 public class AccountNumberSequence {
     @Id
     @Enumerated(EnumType.STRING)
-    @Column(name = "account_type", length = 32)
+    @Column(name = "account_type", length = 32, nullable = false)
     private AccountType accountType;
     @Column(name = "current_counter", nullable = false)
     private long currentCounter;
+
+    @Transient
+    private long initialValue;
 
 }

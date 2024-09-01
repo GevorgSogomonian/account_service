@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum AccountType {
-    CREDIT("5236"),
-    DEPOSIT("4200"),
-    DEBIT("7230");
+    CREDIT(5236),
+    DEPOSIT(4200),
+    DEBIT(7230);
 
-    private final String prefixCode;
+    private final int prefixCode;
 }
