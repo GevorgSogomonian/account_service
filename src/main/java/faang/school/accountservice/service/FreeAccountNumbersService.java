@@ -8,6 +8,7 @@ import faang.school.accountservice.repository.AccountNumberSequenceRepository;
 import faang.school.accountservice.repository.FreeAccountNumbersRepository;
 import jakarta.persistence.Transient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +21,13 @@ import java.util.function.Consumer;
 public class FreeAccountNumbersService {
     private final FreeAccountNumbersRepository freeAccountNumbersRepository;
     private final AccountNumberSequenceRepository accountNumberSequenceRepository;
-    private static long ACCOUNT_NUMBER_PATTERN = 1000_0000_0000_0000L;
+    @Value("${account.number.pattern}")
+    private  long accountNumberPattern;
 
     @Transactional
     public void generatedAccountNumbers(AccountType type, int batchSize) {
         List<FreeAccountNumber> freeAccountNumbers = new ArrayList<>();
-        long typeNumber = ACCOUNT_NUMBER_PATTERN * type.getPrefixCode();
+        long typeNumber = accountNumberPattern * type.getPrefixCode();
         AccountNumberSequence period = accountNumberSequenceRepository.incrementCounterWithBatchSize(type.name(), batchSize);
         for (long i = period.getInitialValue(); i < period.getCurrentCounter(); i++) {
             freeAccountNumbers.add(new FreeAccountNumber(new FreeAccountId(type, typeNumber + i)));

@@ -30,3 +30,11 @@ user-service:
 logging:
   level:
     root: info
+
+account:
+  number:
+    pattern: 1000_0000_0000_0000L
+    cron:
+      pattern: "0 0 0 * * *"
+    batch:
+      size: 1000

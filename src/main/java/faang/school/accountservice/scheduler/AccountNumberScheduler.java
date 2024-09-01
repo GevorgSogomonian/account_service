@@ -16,7 +16,7 @@ public class AccountNumberScheduler {
     private int batchSize;
     private final FreeAccountNumbersService freeAccountNumbersService;
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "${account.number.cron.pattern}")
     public void generateAccountNumbers() {
         Arrays.stream(AccountType.values()).forEach(
                 type -> freeAccountNumbersService.generatedAccountNumbers(type, batchSize));
