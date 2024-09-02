@@ -1,11 +1,14 @@
 package faang.school.accountservice.service;
 
-import faang.school.accountservice.entity.Balance;
-import faang.school.accountservice.entity.BalanceAudit;
 import faang.school.accountservice.dto.BalanceAuditDto;
 import faang.school.accountservice.dto.BalanceDto;
+import faang.school.accountservice.entity.Balance;
+import faang.school.accountservice.entity.BalanceAudit;
+import faang.school.accountservice.exception.DataNotFoundException;
 import faang.school.accountservice.mapper.BalanceAuditMapper;
 import faang.school.accountservice.mapper.BalanceMapper;
+import faang.school.accountservice.model.Account;
+import faang.school.accountservice.repository.AccountRepository;
 import faang.school.accountservice.repository.BalanceAuditRepository;
 import faang.school.accountservice.repository.BalanceRepository;
 import faang.school.accountservice.validator.BalanceServiceValidator;
@@ -14,47 +17,55 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class BalanceService {
-    private final BalanceRepository balanceRepository;
+
+    private final AccountRepository accountRepository;
     private final BalanceMapper balanceMapper;
+    private final BalanceRepository balanceRepository;
     private final BalanceServiceValidator balanceServiceValidator;
     private final BalanceAuditRepository balanceAuditRepository;
     private final BalanceAuditMapper balanceAuditMapper;
 
     @Transactional
-    public BalanceDto getBalance(long idBalance) {
-        Balance balance = findEntityById(idBalance, balanceRepository);
-        return balanceMapper.mapBalanceToDto(balance);
-    }
-
-    @Transactional
     public BalanceDto createBalance(BalanceDto balanceDto) {
-        Balance balance = balanceMapper.mapBalanceDtoToEntity(balanceDto);
-        balance.setCreatedAt(LocalDateTime.now());
-        balance.setUpdateAt(LocalDateTime.now());
 
-        balance = balanceRepository.save(balance);
+        Account account = accountRepository
+                .findById(balanceDto.getAccountId()).orElseThrow(() -> new DataNotFoundException("Account not found"));
+
+        Balance balance = Balance.builder()
+                .account(account)
+                .authorizationBalance(BigDecimal.ZERO)
+                .currentBalance(BigDecimal.ZERO)
+                .build();
+
+        Balance savedBalance = balanceRepository.save(balance);
         saveBalanceAudit(balance);
 
-        return balanceMapper.mapBalanceToDto(balance);
+        return balanceMapper.toDto(savedBalance);
+    }
+
+    @Transactional(readOnly = true)
+    public BalanceDto getBalance(long balanceId) {
+        Balance balance = balanceRepository.findById(balanceId).orElseThrow(() -> new DataNotFoundException("Balance not found"));
+        return balanceMapper.toDto(balance);
     }
 
     @Transactional
     public BalanceDto updateBalance(BalanceDto balanceDto) {
-        Balance balance = findEntityById(balanceDto.getId(), balanceRepository);
-        balance.setAuthorizationAmount(balanceDto.getAuthorizationAmount());
-        balance.setActualAmount(balanceDto.getActualAmount());
-        balance.setUpdateAt(LocalDateTime.now());
 
-        balance = balanceRepository.save(balance);
+        Balance balance = balanceRepository
+                .findByAccountId(balanceDto.getAccountId()).orElseThrow(() -> new DataNotFoundException("Balance not found"));
+
+        balance.setAuthorizationBalance(balanceDto.getAuthorizationBalance());
+        balance.setCurrentBalance(balanceDto.getCurrentBalance());
+        balanceRepository.save(balance);
         saveBalanceAudit(balance);
-
-        return balanceMapper.mapBalanceToDto(balance);
+        return balanceMapper.toDto(balance);
     }
 
     @Transactional

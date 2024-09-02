@@ -14,26 +14,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+
 @RestController
-@RequestMapping("/api/v1/balance")
+@RequestMapping("/balance")
 @RequiredArgsConstructor
 public class BalanceController {
+
     private final BalanceService balanceService;
 
-    @GetMapping("/{idBalance}")
-    @ResponseStatus(HttpStatus.OK)
-    public BalanceDto getBalanceAccount(@PathVariable long idBalance) {
-        return balanceService.getBalance(idBalance);
-    }
-
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
     public BalanceDto createBalance(@RequestBody BalanceDto balanceDto) {
         return balanceService.createBalance(balanceDto);
     }
 
+    @GetMapping("/{accountId}")
+    public BalanceDto getBalance(@PathVariable long accountId) {
+        return balanceService.getBalance(accountId);
+    }
+
     @PutMapping
-    @ResponseStatus(HttpStatus.OK)
     public BalanceDto updateBalance(@RequestBody BalanceDto balanceDto) {
         return balanceService.updateBalance(balanceDto);
     }

@@ -9,7 +9,9 @@ import org.mapstruct.ReportingPolicy;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BalanceAuditMapper {
+
     @Mapping(source = "account.id", target = "accountId")
+    @Mapping(source = "version", target = "versionBalance")
     BalanceAudit mapBalanceToBalanceAudit(Balance balance);
 
     @Mapping(source = "balance.id", target = "balanceId")

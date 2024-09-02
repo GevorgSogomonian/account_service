@@ -11,14 +11,21 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Version;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Data
 @Table(name = "balance_audit")
+@Builder
+@AllArgsConstructor
+@RequiredArgsConstructor
 public class BalanceAudit {
 
     @Id
@@ -31,11 +38,11 @@ public class BalanceAudit {
     @Column(name = "version_balance", nullable = false)
     private long versionBalance;
 
-    @Column(name = "authorization_amount", nullable = false)
-    private long authorizationAmount;
+    @Column(name = "authorization_balance", nullable = false)
+    private BigDecimal authorizationBalance;
 
-    @Column(name = "actual_amount", nullable = false)
-    private long actualAmount;
+    @Column(name = "current_balance", nullable = false)
+    private BigDecimal currentBalance;
 
     @Column(name = "transaction_id", nullable = false)
     @Version

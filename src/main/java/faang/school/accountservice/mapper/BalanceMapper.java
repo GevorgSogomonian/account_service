@@ -10,7 +10,7 @@ import org.mapstruct.ReportingPolicy;
 public interface BalanceMapper {
 
     @Mapping(source = "account.id", target = "accountId")
-    BalanceDto mapBalanceToDto(Balance balance);
+    BalanceDto toDto(Balance balance);
 
     @Mapping(source = "accountId", target = "account.id")
     Balance mapBalanceDtoToEntity(BalanceDto balanceDto);

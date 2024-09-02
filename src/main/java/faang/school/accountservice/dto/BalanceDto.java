@@ -1,13 +1,22 @@
 package faang.school.accountservice.dto;
 
-import lombok.Builder;
-import lombok.Data;
 
-@Data
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+
 @Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class BalanceDto {
-    private long id;
+
+    private BigDecimal authorizationBalance;
+    private BigDecimal currentBalance;
     private long accountId;
-    private long authorizationAmount;
-    private long actualAmount;
 }
