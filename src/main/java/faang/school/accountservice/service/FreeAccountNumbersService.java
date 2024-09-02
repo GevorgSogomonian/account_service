@@ -21,13 +21,13 @@ import java.util.function.Consumer;
 public class FreeAccountNumbersService {
     private final FreeAccountNumbersRepository freeAccountNumbersRepository;
     private final AccountNumberSequenceRepository accountNumberSequenceRepository;
-    @Value("${account.number.pattern}")
-    private  long accountNumberPattern;
+
+    private long accountNumberPattern = 1000_0000_0000_0000L;
 
     @Transactional
     public void generatedAccountNumbers(AccountType type, int batchSize) {
         List<FreeAccountNumber> freeAccountNumbers = new ArrayList<>();
-        long typeNumber = accountNumberPattern * type.getPrefixCode();
+        long typeNumber = accountNumberPattern / 1000 * type.getPrefixCode();
         AccountNumberSequence period = accountNumberSequenceRepository.incrementCounterWithBatchSize(type.name(), batchSize);
         for (long i = period.getInitialValue(); i < period.getCurrentCounter(); i++) {
             freeAccountNumbers.add(new FreeAccountNumber(new FreeAccountId(type, typeNumber + i)));

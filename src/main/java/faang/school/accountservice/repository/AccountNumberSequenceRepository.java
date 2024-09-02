@@ -7,20 +7,20 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AccountNumberSequenceRepository extends JpaRepository<AccountNumberSequence,String> {
+public interface AccountNumberSequenceRepository extends JpaRepository<AccountNumberSequence, String> {
     @Query(nativeQuery = true, value = """
-            UPDATE account_number_sequence SET current_counter = current_counter + 1
+            UPDATE account_numbers_sequence SET current_counter = current_counter + 1
             WHERE account_type =: accountType,
             RETURNING account_type, current_counter
             """)
     @Modifying
     AccountNumberSequence getAccountNumberSequence(String accountType);
 
+
     @Query(nativeQuery = true, value = """
-            UPDATE account_number_sequence SET current_counter = current_counter + :batchSize
-            WHERE account_type =: accountType,
+            UPDATE account_numbers_sequence SET current_counter = current_counter + :batchSize
+            WHERE account_type = :accountType
             RETURNING account_type, current_counter, old.current_counter AS initialValue
             """)
-    @Modifying
     AccountNumberSequence incrementCounterWithBatchSize(String accountType, int batchSize);
 }

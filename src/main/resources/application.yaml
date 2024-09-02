@@ -34,7 +34,6 @@ logging:
 account:
   number:
     pattern: 1000_0000_0000_0000L
-    cron:
-      pattern: "0 0 0 * * *"
+    cron: "0 0 0 * * *"
     batch:
-      size: 1000
+      size: 10
