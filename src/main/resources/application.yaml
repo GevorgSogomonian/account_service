@@ -36,4 +36,4 @@ account:
     pattern: 1000_0000_0000_0000L
     cron: "0 0 0 * * *"
     batch:
-      size: 10
+      size: 5

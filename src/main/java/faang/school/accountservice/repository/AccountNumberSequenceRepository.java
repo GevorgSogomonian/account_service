@@ -13,14 +13,15 @@ public interface AccountNumberSequenceRepository extends JpaRepository<AccountNu
             WHERE account_type =: accountType,
             RETURNING account_type, current_counter
             """)
-    @Modifying
-    AccountNumberSequence getAccountNumberSequence(String accountType);
+    AccountNumberSequence incrementCounter(String accountType);
 
 
     @Query(nativeQuery = true, value = """
             UPDATE account_numbers_sequence SET current_counter = current_counter + :batchSize
             WHERE account_type = :accountType
-            RETURNING account_type, current_counter, old.current_counter AS initialValue
+            RETURNING account_type, current_counter
             """)
     AccountNumberSequence incrementCounterWithBatchSize(String accountType, int batchSize);
+
+    AccountNumberSequence findByAccountType(String accountType);
 }

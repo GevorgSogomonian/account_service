@@ -3,12 +3,14 @@ package faang.school.accountservice.model;
 import faang.school.accountservice.enums.AccountType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OptimisticLocking;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@OptimisticLocking
 @Table(name = "account_numbers_sequence")
 public class AccountNumberSequence {
     @Id
@@ -17,7 +19,6 @@ public class AccountNumberSequence {
     private AccountType accountType;
     @Column(name = "current_counter", nullable = false)
     private long currentCounter;
-
-    @Transient
-    private long initialValue;
+    @Version
+    private long version;
 }

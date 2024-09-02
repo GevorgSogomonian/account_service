@@ -28,8 +28,9 @@ public class FreeAccountNumbersService {
     public void generatedAccountNumbers(AccountType type, int batchSize) {
         List<FreeAccountNumber> freeAccountNumbers = new ArrayList<>();
         long typeNumber = accountNumberPattern / 1000 * type.getPrefixCode();
-        AccountNumberSequence period = accountNumberSequenceRepository.incrementCounterWithBatchSize(type.name(), batchSize);
-        for (long i = period.getInitialValue(); i < period.getCurrentCounter(); i++) {
+        long  startCounter = accountNumberSequenceRepository.findByAccountType(type.name()).getCurrentCounter();
+        long endCounter = accountNumberSequenceRepository.incrementCounterWithBatchSize(type.name(),batchSize).getCurrentCounter();
+        for (long i = startCounter; i < endCounter; i++) {
             freeAccountNumbers.add(new FreeAccountNumber(new FreeAccountId(type, typeNumber + i)));
         }
         freeAccountNumbersRepository.saveAll(freeAccountNumbers);
@@ -38,7 +39,8 @@ public class FreeAccountNumbersService {
     @Transactional
     public void retrieveAccountNumber(AccountType type, Consumer<FreeAccountNumber> consumer) {
         if (!freeAccountNumbersRepository.getFreeAccountNumber(type.name()).isPresent()) {
-            generatedAccountNumbers(type, 1);
+            long freeNumber = accountNumberSequenceRepository.incrementCounter(type.name()).getCurrentCounter();
+            freeAccountNumbersRepository.save(new FreeAccountNumber(new FreeAccountId(type, freeNumber)));
         }
         consumer.accept(freeAccountNumbersRepository.getFreeAccountNumber(type.name()).get());
     }
