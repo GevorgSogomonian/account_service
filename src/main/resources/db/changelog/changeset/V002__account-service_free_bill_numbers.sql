@@ -1,8 +1,9 @@
 CREATE TABLE IF NOT EXISTS account_numbers_sequence
 (
-    account_type    VARCHAR(32) PRIMARY KEY,
+    id              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    account_type    VARCHAR(32),
     current_counter bigint NOT NULL DEFAULT 1,
-    version         BIGINT NOT NULL DEFAULT 0
+    version         BIGINT NOT NULL DEFAULT 1
 );
 
 INSERT INTO account_numbers_sequence (account_type, current_counter)

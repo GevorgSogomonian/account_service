@@ -1,8 +1,8 @@
 package faang.school.accountservice.model;
 
-import faang.school.accountservice.enums.AccountType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "free_account_numbers")
 public class FreeAccountNumber {
     @EmbeddedId

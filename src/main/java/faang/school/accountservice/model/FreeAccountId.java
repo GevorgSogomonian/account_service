@@ -6,16 +6,17 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 @Embeddable
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class FreeAccountId {
     @Column(name = "account_type", length = 32, nullable = false)
     @Enumerated(EnumType.STRING)
     private AccountType accountType;
     @Column(name = "account_number", nullable = false)
     private Long accountNumber;
-
 }

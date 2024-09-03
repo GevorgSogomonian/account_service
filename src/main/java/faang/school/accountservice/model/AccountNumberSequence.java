@@ -14,6 +14,8 @@ import org.hibernate.annotations.OptimisticLocking;
 @Table(name = "account_numbers_sequence")
 public class AccountNumberSequence {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
     @Enumerated(EnumType.STRING)
     @Column(name = "account_type", length = 32, nullable = false)
     private AccountType accountType;
