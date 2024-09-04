@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface AccountNumberSequenceRepository extends JpaRepository<AccountNumberSequence, Long> {
     @Query(nativeQuery = true, value = """
             UPDATE account_numbers_sequence SET current_counter = current_counter + 1
-            WHERE account_type =: accountType
+            WHERE account_type =:accountType
             RETURNING id, account_type, current_counter, version
             """)
     AccountNumberSequence incrementCounter(String accountType);

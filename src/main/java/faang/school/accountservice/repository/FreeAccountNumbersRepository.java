@@ -25,6 +25,5 @@ public interface FreeAccountNumbersRepository extends JpaRepository<FreeAccountN
                     ) 
                     returning account_type, account_number;
                     """)
-    @Modifying
     Optional<FreeAccountNumber> getFreeAccountNumber(String accountType);
 }

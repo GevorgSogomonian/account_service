@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Service
@@ -48,18 +49,23 @@ public class FreeAccountNumbersService {
     @Transactional
     @Retryable(retryFor = OptimisticLockingFailureException.class, backoff = @Backoff(delay = 3000L))
     public void retrieveAccountNumber(AccountType type, Consumer<FreeAccountNumber> consumer) {
-        if (!freeAccountNumbersRepository.getFreeAccountNumber(type.name()).isPresent()) {
-            log.info("Generated new number with type {}", type.name());
-
-            long freeNumber = accountNumberSequenceRepository.incrementCounter(type.name()).getCurrentCounter();
+        Optional<FreeAccountNumber> freeAccountNumber = freeAccountNumbersRepository.getFreeAccountNumber(type.name());
+        if (!freeAccountNumber.isPresent()) {
+            long freeNumber = accountNumberSequenceRepository.incrementCounter(type.name()).getCurrentCounter()-1;
+            log.info("Create new number {}", freeNumber);
             freeAccountNumbersRepository.save(FreeAccountNumber.builder()
                     .id(FreeAccountId.builder()
                             .accountType(type)
                             .accountNumber(getTypeNumber(type) + freeNumber)
                             .build())
                     .build());
+            FreeAccountNumber newNumber = freeAccountNumbersRepository.getFreeAccountNumber(type.name()).get();
+            consumer.accept(newNumber);
+            log.info("Generated new number with type {} and number {}",
+                    newNumber.getId().getAccountType(), newNumber.getId().getAccountNumber());
+        } else {
+            consumer.accept(freeAccountNumber.get());
         }
-        consumer.accept(freeAccountNumbersRepository.getFreeAccountNumber(type.name()).get());
     }
 
     private long getTypeNumber(AccountType type) {
