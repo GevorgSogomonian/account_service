@@ -51,7 +51,7 @@ public class FreeAccountNumbersService {
     public void retrieveAccountNumber(AccountType type, Consumer<FreeAccountNumber> consumer) {
         Optional<FreeAccountNumber> freeAccountNumber = freeAccountNumbersRepository.getFreeAccountNumber(type.name());
         if (!freeAccountNumber.isPresent()) {
-            long freeNumber = accountNumberSequenceRepository.incrementCounter(type.name()).getCurrentCounter()-1;
+            long freeNumber = accountNumberSequenceRepository.incrementCounter(type.name()).getCurrentCounter() - 1;
             log.info("Create new number {}", freeNumber);
             freeAccountNumbersRepository.save(FreeAccountNumber.builder()
                     .id(FreeAccountId.builder()
@@ -68,7 +68,7 @@ public class FreeAccountNumbersService {
         }
     }
 
-    private long getTypeNumber(AccountType type) {
+     public long getTypeNumber(AccountType type) {
         int prefixDigitDivider = 1000;
         return accountNumberPattern / prefixDigitDivider * type.getPrefixCode();
     }
