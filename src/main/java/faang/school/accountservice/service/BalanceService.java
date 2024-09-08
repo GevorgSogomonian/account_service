@@ -1,5 +1,6 @@
 package faang.school.accountservice.service;
 
+import faang.school.accountservice.balanceValidator.BalanceValidator;
 import faang.school.accountservice.dto.BalanceDto;
 import faang.school.accountservice.entity.Account;
 import faang.school.accountservice.entity.Balance;
@@ -20,38 +21,52 @@ public class BalanceService {
     private final AccountRepository accountRepository;
     private final BalanceMapper balanceMapper;
     private final BalanceRepository balanceRepository;
+    private final BalanceValidator balanceValidator;
 
     @Transactional
-    public BalanceDto createBalance(BalanceDto balanceDto) {
+    public BalanceDto createBalance(Long accountId) {
 
         Account account = accountRepository
-                .findById(balanceDto.getAccountId()).orElseThrow(() -> new DataNotFoundException("Account not found"));
+                .findById(accountId).orElseThrow(() -> new DataNotFoundException("Account not found"));
+
+        balanceValidator.checkExistBalanceForAccount(account);
 
         Balance balance = Balance.builder()
                 .account(account)
                 .authorizationBalance(BigDecimal.ZERO)
                 .currentBalance(BigDecimal.ZERO)
+                .version(1L)
                 .build();
+        account.setBalance(balance);
 
         Balance savedBalance = balanceRepository.save(balance);
         return balanceMapper.toDto(savedBalance);
     }
 
     @Transactional(readOnly = true)
-    public BalanceDto getBalance(long balanceId) {
-        Balance balance = balanceRepository.findById(balanceId).orElseThrow(() -> new DataNotFoundException("Balance not found"));
+    public BalanceDto getBalance(long accountId) {
+        Balance balance = getBalanceByAccountId(accountId);
         return balanceMapper.toDto(balance);
     }
 
     @Transactional
-    public BalanceDto updateBalance(BalanceDto balanceDto) {
+    public BalanceDto updateBalance(Balance balance, BigDecimal amount, Boolean isReplenishment) {
 
-        Balance balance = balanceRepository
-                .findByAccountId(balanceDto.getAccountId()).orElseThrow(() -> new DataNotFoundException("Balance not found"));
+        balanceValidator.isBalanceValid(balance);
 
-        balance.setAuthorizationBalance(balanceDto.getAuthorizationBalance());
-        balance.setCurrentBalance(balanceDto.getCurrentBalance());
+        if (isReplenishment) {
+            balanceValidator.isAmountValidForReplenishment(amount);
+            balance.setAuthorizationBalance(balance.getAuthorizationBalance().add(amount));
+        } else {
+            balanceValidator.isBalanceValidForWithdrawal(balance, amount);
+            balance.setAuthorizationBalance(balance.getAuthorizationBalance().subtract(amount));
+        }
         balanceRepository.save(balance);
         return balanceMapper.toDto(balance);
+    }
+
+    private Balance getBalanceByAccountId(Long accountId) {
+        return balanceRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new DataNotFoundException("Balance not found for account id: " + accountId));
     }
 }

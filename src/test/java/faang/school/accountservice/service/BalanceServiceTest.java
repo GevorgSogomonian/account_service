@@ -1,5 +1,6 @@
 package faang.school.accountservice.service;
 
+import faang.school.accountservice.balanceValidator.BalanceValidator;
 import faang.school.accountservice.dto.BalanceDto;
 import faang.school.accountservice.entity.Account;
 import faang.school.accountservice.entity.Balance;
@@ -22,6 +23,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +40,9 @@ public class BalanceServiceTest {
     @Mock
     private BalanceRepository balanceRepository;
 
+    @Spy
+    private BalanceValidator balanceValidator;
+
     @InjectMocks
     private BalanceService balanceService;
 
@@ -43,7 +50,6 @@ public class BalanceServiceTest {
     private BalanceDto balanceDto;
     private Account account;
     private Balance balance;
-
 
 
     @BeforeEach
@@ -67,38 +73,108 @@ public class BalanceServiceTest {
     }
 
     @Test
+    @DisplayName("create balance - account found")
     public void testCreateBalance_AccountFound() {
         when(accountRepository.findById(balanceDto.getAccountId())).thenReturn(Optional.of(account));
         when(balanceRepository.save(any(Balance.class))).thenReturn(balance);
         when(balanceMapper.toDto(balance)).thenReturn(balanceDto);
 
-        BalanceDto result = balanceService.createBalance(balanceDto);
+        BalanceDto result = balanceService.createBalance(1L);
 
         assertEquals(balanceDto, result);
     }
 
     @Test
+    @DisplayName("create balance - account not found")
     public void testCreateBalance_AccountNotFound() {
         when(accountRepository.findById(balanceDto.getAccountId())).thenReturn(Optional.empty());
-
-        assertThrows(DataNotFoundException.class, () -> balanceService.createBalance(balanceDto));
+        assertThrows(DataNotFoundException.class, () -> balanceService.createBalance(1L));
     }
 
     @Test
-    @DisplayName("getBalance - success")
-    public void testGetBalance() {
-        when(balanceRepository.findById(1L)).thenReturn(Optional.of(balance));
+    @DisplayName("create balance when it is already exist")
+    public void testCreateBalance_BalanceAlreadyExists() {
+        account.setBalance(balance);
+        when(accountRepository.findById(balanceDto.getAccountId())).thenReturn(Optional.of(account));
+        assertThrows(RuntimeException.class, () -> balanceService.createBalance(1L));
+    }
+
+    @Test
+    @DisplayName("get balance - account not found")
+    void testGetBalance_AccountNotFound() {
+        // Arrange
+        long accountId = 1L;
+        when(balanceRepository.findByAccountId(accountId)).thenReturn(java.util.Optional.empty());
+
+        // Act and Assert
+        assertThrows(DataNotFoundException.class, () -> balanceService.getBalance(accountId));
+    }
+
+    @Test
+    @DisplayName("get balance - account found")
+    void testGetBalance_AccountFound() {
+        long accountId = 1L;
+        when(balanceRepository.findByAccountId(accountId)).thenReturn(java.util.Optional.of(balance));
         when(balanceMapper.toDto(balance)).thenReturn(balanceDto);
 
-        BalanceDto result = balanceService.getBalance(1L);
+        BalanceDto result = balanceService.getBalance(accountId);
 
         assertEquals(balanceDto, result);
     }
 
     @Test
-    @DisplayName("getBalance - fail")
-    public void testGetBalanceFail() {
-        when(balanceRepository.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(DataNotFoundException.class, () -> balanceService.getBalance(1L));
+    @DisplayName("Update balance - replenishment")
+    public void testUpdateBalance_Replenishment() {
+        BigDecimal amount = BigDecimal.valueOf(100);
+        when(balanceMapper.toDto(any(Balance.class))).thenReturn(new BalanceDto());
+
+        BalanceDto result = balanceService.updateBalance(balance, amount, true);
+
+        verify(balanceValidator, times(1)).isBalanceValid(balance);
+        verify(balanceValidator, times(1)).isAmountValidForReplenishment(amount);
+        assertEquals(BigDecimal.valueOf(100), balance.getAuthorizationBalance());
+        verify(balanceRepository, times(1)).save(balance);
     }
+
+    @Test
+    @DisplayName("Update balance - withdrawal")
+    public void testUpdateBalance_Withdrawal() {
+        BigDecimal amount = BigDecimal.valueOf(100);
+        balance.setAuthorizationBalance(BigDecimal.valueOf(200));
+        when(balanceMapper.toDto(any(Balance.class))).thenReturn(new BalanceDto());
+
+        BalanceDto result = balanceService.updateBalance(balance, amount, false);
+
+        verify(balanceValidator, times(1)).isBalanceValid(balance);
+        verify(balanceValidator, times(1)).isBalanceValidForWithdrawal(balance, amount);
+        assertEquals(BigDecimal.valueOf(100), balance.getAuthorizationBalance());
+        verify(balanceRepository, times(1)).save(balance);
     }
+
+    @Test
+    @DisplayName("Update balance - invalid balance")
+    public void testUpdateBalance_InvalidBalance() {
+        BigDecimal amount = BigDecimal.valueOf(100);
+        doThrow(new IllegalArgumentException()).when(balanceValidator).isBalanceValid(balance);
+
+        assertThrows(IllegalArgumentException.class, () -> balanceService.updateBalance(balance, amount, true));
+    }
+
+    @Test
+    @DisplayName("Update balance - invalid amount for replenishment")
+    public void testUpdateBalance_InvalidAmountForReplenishment() {
+        BigDecimal amount = BigDecimal.valueOf(100);
+        doThrow(new IllegalArgumentException()).when(balanceValidator).isAmountValidForReplenishment(amount);
+
+        assertThrows(IllegalArgumentException.class, () -> balanceService.updateBalance(balance, amount, true));
+    }
+
+    @Test
+    @DisplayName("Update balance - invalid balance for withdrawal")
+    public void testUpdateBalance_InvalidBalanceForWithdrawal() {
+        BigDecimal amount = BigDecimal.valueOf(100);
+        doThrow(new IllegalArgumentException()).when(balanceValidator).isBalanceValidForWithdrawal(balance, amount);
+
+        assertThrows(IllegalArgumentException.class, () -> balanceService.updateBalance(balance, amount, false));
+    }
+}
