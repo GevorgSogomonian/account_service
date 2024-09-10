@@ -20,4 +20,10 @@ public class GlobalExceptionHandler {
     public ErrorResponseDto handleIllegalEntityException(IllegalEntityException e) {
         return new ErrorResponseDto(e.getMessage(), HttpStatus.BAD_REQUEST.value());
     }
+
+    @ExceptionHandler(DataNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponseDto handleUserNotFoundException(DataNotFoundException e) {
+        return new ErrorResponseDto(e.getMessage(), HttpStatus.NOT_FOUND.value());
+    }
 }
