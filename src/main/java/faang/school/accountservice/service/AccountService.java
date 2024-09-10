@@ -8,7 +8,6 @@ import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.exception.DataNotFoundException;
 import faang.school.accountservice.exception.EntityNotFoundException;
 import faang.school.accountservice.mapper.AccountMapper;
-import faang.school.accountservice.model.Account;
 import faang.school.accountservice.repository.AccountRepository;
 import faang.school.accountservice.validator.AccountValidator;
 import lombok.RequiredArgsConstructor;

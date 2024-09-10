@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleUserNotFoundException(DataNotFoundException exception) {
-        return new ErrorResponse("User Not Found", exception.getMessage());
+    public ErrorResponseDto handleUserNotFoundException(DataNotFoundException e) {
+        return new ErrorResponseDto(e.getMessage(), HttpStatus.NOT_FOUND.value());
     }
 }
