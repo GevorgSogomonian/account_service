@@ -128,7 +128,7 @@ public class BalanceServiceTest {
         BigDecimal amount = BigDecimal.valueOf(100);
         when(balanceMapper.toDto(any(Balance.class))).thenReturn(new BalanceDto());
 
-        BalanceDto result = balanceService.updateBalance(balance, amount, true);
+        balanceService.increaseBalance(balance, amount);
 
         verify(balanceValidator, times(1)).isBalanceValid(balance);
         verify(balanceValidator, times(1)).isAmountValidForReplenishment(amount);
@@ -143,11 +143,10 @@ public class BalanceServiceTest {
         balance.setAuthorizationBalance(BigDecimal.valueOf(200));
         when(balanceMapper.toDto(any(Balance.class))).thenReturn(new BalanceDto());
 
-        BalanceDto result = balanceService.updateBalance(balance, amount, false);
+        balanceService.increaseBalance(balance, amount);
 
         verify(balanceValidator, times(1)).isBalanceValid(balance);
-        verify(balanceValidator, times(1)).isBalanceValidForWithdrawal(balance, amount);
-        assertEquals(BigDecimal.valueOf(100), balance.getAuthorizationBalance());
+        assertEquals(BigDecimal.valueOf(300), balance.getAuthorizationBalance());
         verify(balanceRepository, times(1)).save(balance);
     }
 
@@ -157,7 +156,7 @@ public class BalanceServiceTest {
         BigDecimal amount = BigDecimal.valueOf(100);
         doThrow(new IllegalArgumentException()).when(balanceValidator).isBalanceValid(balance);
 
-        assertThrows(IllegalArgumentException.class, () -> balanceService.updateBalance(balance, amount, true));
+        assertThrows(IllegalArgumentException.class, () -> balanceService.increaseBalance(balance, amount));
     }
 
     @Test
@@ -166,15 +165,50 @@ public class BalanceServiceTest {
         BigDecimal amount = BigDecimal.valueOf(100);
         doThrow(new IllegalArgumentException()).when(balanceValidator).isAmountValidForReplenishment(amount);
 
-        assertThrows(IllegalArgumentException.class, () -> balanceService.updateBalance(balance, amount, true));
+        assertThrows(IllegalArgumentException.class, () -> balanceService.increaseBalance(balance, amount));
     }
 
     @Test
     @DisplayName("Update balance - invalid balance for withdrawal")
     public void testUpdateBalance_InvalidBalanceForWithdrawal() {
         BigDecimal amount = BigDecimal.valueOf(100);
-        doThrow(new IllegalArgumentException()).when(balanceValidator).isBalanceValidForWithdrawal(balance, amount);
+        doThrow(new IllegalArgumentException()).when(balanceValidator).isAmountValidForReplenishment(amount);
 
-        assertThrows(IllegalArgumentException.class, () -> balanceService.updateBalance(balance, amount, false));
+        assertThrows(IllegalArgumentException.class, () -> balanceService.increaseBalance(balance, amount));
+    }
+
+    @Test
+    @DisplayName("reduce balance - success")
+    public void testReduceBalance_ValidBalanceAndAmount() {
+        Balance balance = new Balance();
+        balance.setAuthorizationBalance(BigDecimal.valueOf(100));
+        BigDecimal amount = BigDecimal.valueOf(50);
+        when(balanceMapper.toDto(any(Balance.class))).thenReturn(new BalanceDto());
+
+        balanceService.reduceBalance(balance, amount);
+
+        assertEquals(BigDecimal.valueOf(50), balance.getAuthorizationBalance());
+        verify(balanceRepository, times(1)).save(balance);
+    }
+
+    @Test
+    @DisplayName("reduce balance - invalid balance")
+    public void testReduceBalance_InvalidBalance() {
+        Balance balance = new Balance();
+        BigDecimal amount = BigDecimal.valueOf(50);
+        doThrow(new IllegalArgumentException("Check your balance")).when(balanceValidator).isBalanceValid(balance);
+
+        assertThrows(IllegalArgumentException.class, () -> balanceService.reduceBalance(balance, amount));
+    }
+
+    @Test
+    @DisplayName("reduce balance - invalid amount")
+    public void testReduceBalance_InvalidAmount() {
+        Balance balance = new Balance();
+        balance.setAuthorizationBalance(BigDecimal.valueOf(100));
+        BigDecimal amount = BigDecimal.valueOf(150);
+        doThrow(new IllegalArgumentException("Check your balance")).when(balanceValidator).isBalanceValidForWithdrawal(balance, amount);
+
+        assertThrows(IllegalArgumentException.class, () -> balanceService.reduceBalance(balance, amount));
     }
 }

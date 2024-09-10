@@ -34,11 +34,17 @@ public class AccountController {
         return accountService.getBalance(accountId);
     }
 
-    @PutMapping("/{accountId}")
+    @PutMapping("/increase/{accountId}")
     @ResponseStatus(HttpStatus.OK)
-    public BalanceDto updateAccountBalance(@PathVariable Long accountId,
-                                           @RequestParam BigDecimal amount,
-                                           @RequestParam Boolean isReplenishment) {
-        return accountService.updateBalance(accountId, amount, isReplenishment);
+    public BalanceDto increaseAccountBalance(@PathVariable Long accountId,
+                                             @RequestParam BigDecimal amount) {
+        return accountService.increaseBalance(accountId, amount);
+    }
+
+    @PutMapping("/reduce/{accountId}")
+    @ResponseStatus(HttpStatus.OK)
+    public BalanceDto reduceAccountBalance(@PathVariable Long accountId,
+                                           @RequestParam BigDecimal amount) {
+        return accountService.reduceBalance(accountId, amount);
     }
 }

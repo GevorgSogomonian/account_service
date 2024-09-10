@@ -50,17 +50,25 @@ public class BalanceService {
     }
 
     @Transactional
-    public BalanceDto updateBalance(Balance balance, BigDecimal amount, Boolean isReplenishment) {
+    public BalanceDto increaseBalance(Balance balance, BigDecimal amount) {
 
         balanceValidator.isBalanceValid(balance);
 
-        if (isReplenishment) {
-            balanceValidator.isAmountValidForReplenishment(amount);
-            balance.setAuthorizationBalance(balance.getAuthorizationBalance().add(amount));
-        } else {
-            balanceValidator.isBalanceValidForWithdrawal(balance, amount);
-            balance.setAuthorizationBalance(balance.getAuthorizationBalance().subtract(amount));
-        }
+        balanceValidator.isAmountValidForReplenishment(amount);
+        balance.setAuthorizationBalance(balance.getAuthorizationBalance().add(amount));
+
+        balanceRepository.save(balance);
+        return balanceMapper.toDto(balance);
+    }
+
+    @Transactional
+    public BalanceDto reduceBalance(Balance balance, BigDecimal amount) {
+
+        balanceValidator.isBalanceValid(balance);
+
+        balanceValidator.isBalanceValidForWithdrawal(balance, amount);
+        balance.setAuthorizationBalance(balance.getAuthorizationBalance().subtract(amount));
+
         balanceRepository.save(balance);
         return balanceMapper.toDto(balance);
     }

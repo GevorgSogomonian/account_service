@@ -1,4 +1,5 @@
 package faang.school.accountservice.service;
+
 import faang.school.accountservice.dto.BalanceDto;
 import faang.school.accountservice.entity.Account;
 import faang.school.accountservice.entity.Balance;
@@ -35,7 +36,7 @@ public class AccountServiceTest {
     public void verifyCreateBalance() {
         long accountId = 1L;
 
-        BalanceDto result = accountService.createBalance(accountId);
+        accountService.createBalance(accountId);
         verify(balanceService, times(1)).createBalance(accountId);
     }
 
@@ -44,8 +45,8 @@ public class AccountServiceTest {
     public void testGetBalance() {
         long accountId = 1L;
 
-       accountService.getBalance(accountId);
-       verify(balanceService, times(1)).getBalance(accountId);
+        accountService.getBalance(accountId);
+        verify(balanceService, times(1)).getBalance(accountId);
     }
 
     @Test
@@ -53,19 +54,18 @@ public class AccountServiceTest {
     public void testUpdateBalance_AccountFound() {
         Long accountId = 1L;
         BigDecimal amount = BigDecimal.valueOf(100);
-        Boolean isReplenishment = true;
         Account account = new Account();
         Balance balance = new Balance();
         account.setBalance(balance);
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
         BalanceDto balanceDto = new BalanceDto();
-        when(balanceService.updateBalance(balance, amount, isReplenishment)).thenReturn(balanceDto);
+        when(balanceService.increaseBalance(balance, amount)).thenReturn(balanceDto);
 
-        BalanceDto result = accountService.updateBalance(accountId, amount, isReplenishment);
+        BalanceDto result = accountService.increaseBalance(accountId, amount);
 
         assertEquals(balanceDto, result);
         verify(accountRepository, times(1)).findById(accountId);
-        verify(balanceService, times(1)).updateBalance(balance, amount, isReplenishment);
+        verify(balanceService, times(1)).increaseBalance(balance, amount);
     }
 
     @Test
@@ -73,11 +73,37 @@ public class AccountServiceTest {
     public void testUpdateBalance_AccountNotFound() {
         Long accountId = 1L;
         BigDecimal amount = BigDecimal.valueOf(100);
-        Boolean isReplenishment = true;
         when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
 
-        assertThrows(DataNotFoundException.class, () -> accountService.updateBalance(accountId, amount, isReplenishment));
+        assertThrows(DataNotFoundException.class, () -> accountService.increaseBalance(accountId, amount));
         verify(accountRepository, times(1)).findById(accountId);
-        verify(balanceService, never()).updateBalance(any(), any(), any());
+        verify(balanceService, never()).increaseBalance(any(), any());
+    }
+
+    @Test
+    @DisplayName("reduceBalance - success")
+    public void testReduceBalance_AccountFound() {
+        Long accountId = 1L;
+        BigDecimal amount = BigDecimal.valueOf(100);
+        Account account = new Account();
+        Balance balance = new Balance();
+        account.setBalance(balance);
+        when(accountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
+        BalanceDto balanceDto = new BalanceDto();
+        when(balanceService.reduceBalance(balance, amount)).thenReturn(balanceDto);
+
+        BalanceDto result = accountService.reduceBalance(accountId, amount);
+
+        assertEquals(balanceDto, result);
+    }
+
+    @Test
+    @DisplayName("reduceBalance - fail")
+    public void testReduceBalance_AccountNotFound() {
+        Long accountId = 1L;
+        BigDecimal amount = BigDecimal.valueOf(100);
+        when(accountRepository.findById(accountId)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(DataNotFoundException.class, () -> accountService.reduceBalance(accountId, amount));
     }
 }

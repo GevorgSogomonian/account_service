@@ -20,7 +20,7 @@ public class AccountService {
 
     @Transactional
     public BalanceDto createBalance(Long accountId) {
-        return  balanceService.createBalance(accountId);
+        return balanceService.createBalance(accountId);
     }
 
     @Transactional(readOnly = true)
@@ -29,10 +29,17 @@ public class AccountService {
     }
 
     @Transactional
-    public BalanceDto updateBalance(Long accountId, BigDecimal amount, Boolean isReplenishment) {
-        Account account = accountRepository.findById(accountId).orElseThrow(() -> new DataNotFoundException("Account not found"));
+    public BalanceDto increaseBalance(Long accountId, BigDecimal amount) {
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new DataNotFoundException("Account with id " + accountId + " not found"));
         Balance balance = account.getBalance();
-        return balanceService.updateBalance(balance, amount, isReplenishment);
+        return balanceService.increaseBalance(balance, amount);
+    }
+
+    @Transactional
+    public BalanceDto reduceBalance(Long accountId, BigDecimal amount) {
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new DataNotFoundException("Account with id " + accountId + " not found"));
+        Balance balance = account.getBalance();
+        return balanceService.reduceBalance(balance, amount);
     }
 
 }
