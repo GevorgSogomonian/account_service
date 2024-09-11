@@ -1,5 +1,6 @@
 package faang.school.accountservice.dto;
 
+
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
@@ -19,7 +20,10 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class AccountDto {
     @Positive
-    private Long id;
+    private Long accountId;
+
+    @NotNull
+    private Long balanceId;
 
     @NotNull
     @Size(min = 12, max = 20)

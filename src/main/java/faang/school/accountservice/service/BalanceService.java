@@ -1,7 +1,9 @@
 package faang.school.accountservice.service;
 
+import faang.school.accountservice.balanceValidator.BalanceValidator;
 import faang.school.accountservice.dto.BalanceAuditDto;
 import faang.school.accountservice.dto.BalanceDto;
+import faang.school.accountservice.entity.Account;
 import faang.school.accountservice.entity.Balance;
 import faang.school.accountservice.entity.BalanceAudit;
 import faang.school.accountservice.exception.DataNotFoundException;
@@ -27,21 +29,26 @@ public class BalanceService {
     private final AccountRepository accountRepository;
     private final BalanceMapper balanceMapper;
     private final BalanceRepository balanceRepository;
+    private final BalanceValidator balanceValidator;
     private final BalanceServiceValidator balanceServiceValidator;
     private final BalanceAuditRepository balanceAuditRepository;
     private final BalanceAuditMapper balanceAuditMapper;
 
     @Transactional
-    public BalanceDto createBalance(BalanceDto balanceDto) {
+    public BalanceDto createBalance(Long accountId) {
 
         Account account = accountRepository
-                .findById(balanceDto.getAccountId()).orElseThrow(() -> new DataNotFoundException("Account not found"));
+                .findById(accountId).orElseThrow(() -> new DataNotFoundException("Account not found"));
+
+        balanceValidator.checkExistBalanceForAccount(account);
 
         Balance balance = Balance.builder()
                 .account(account)
                 .authorizationBalance(BigDecimal.ZERO)
                 .currentBalance(BigDecimal.ZERO)
+                .version(1L)
                 .build();
+        account.setBalance(balance);
 
         Balance savedBalance = balanceRepository.save(balance);
         saveBalanceAudit(balance);
@@ -50,36 +57,47 @@ public class BalanceService {
     }
 
     @Transactional(readOnly = true)
-    public BalanceDto getBalance(long balanceId) {
-        Balance balance = balanceRepository.findById(balanceId).orElseThrow(() -> new DataNotFoundException("Balance not found"));
+    public BalanceDto getBalance(long accountId) {
+        Balance balance = getBalanceByAccountId(accountId);
         return balanceMapper.toDto(balance);
     }
 
     @Transactional
-    public BalanceDto updateBalance(BalanceDto balanceDto) {
+    public BalanceDto increaseBalance(Balance balance, BigDecimal amount) {
 
-        Balance balance = balanceRepository
-                .findByAccountId(balanceDto.getAccountId()).orElseThrow(() -> new DataNotFoundException("Balance not found"));
+        balanceValidator.isBalanceValid(balance);
 
-        balance.setAuthorizationBalance(balanceDto.getAuthorizationBalance());
-        balance.setCurrentBalance(balanceDto.getCurrentBalance());
+        balanceValidator.isAmountValidForReplenishment(amount);
+        balance.setAuthorizationBalance(balance.getAuthorizationBalance().add(amount));
+
         balanceRepository.save(balance);
         saveBalanceAudit(balance);
         return balanceMapper.toDto(balance);
     }
 
     @Transactional
+    public BalanceDto reduceBalance(Balance balance, BigDecimal amount) {
+
+        balanceValidator.isBalanceValid(balance);
     public BalanceAuditDto getBalanceAudit(long idAudit) {
         BalanceAudit balanceAudit = findEntityById(idAudit, balanceAuditRepository);
         return balanceAuditMapper.mapEntityToDto(balanceAudit);
     }
 
+        balanceValidator.isBalanceValidForWithdrawal(balance, amount);
+        balance.setAuthorizationBalance(balance.getAuthorizationBalance().subtract(amount));
+
+        balanceRepository.save(balance);
+        return balanceMapper.toDto(balance);
     private <T> T findEntityById(long id, CrudRepository<T, Long> repository) {
         Optional<T> entity = repository.findById(id);
         balanceServiceValidator.checkExistence(entity);
         return entity.get();
     }
 
+    private Balance getBalanceByAccountId(Long accountId) {
+        return balanceRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new DataNotFoundException("Balance not found for account id: " + accountId));
     private void saveBalanceAudit(Balance balance) {
         BalanceAudit balanceAudit = balanceAuditMapper.mapBalanceToBalanceAudit(balance);
         balanceAuditRepository.save(balanceAudit);
