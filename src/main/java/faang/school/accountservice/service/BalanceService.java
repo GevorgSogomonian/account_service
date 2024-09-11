@@ -9,7 +9,6 @@ import faang.school.accountservice.entity.BalanceAudit;
 import faang.school.accountservice.exception.DataNotFoundException;
 import faang.school.accountservice.mapper.BalanceAuditMapper;
 import faang.school.accountservice.mapper.BalanceMapper;
-import faang.school.accountservice.model.Account;
 import faang.school.accountservice.repository.AccountRepository;
 import faang.school.accountservice.repository.BalanceAuditRepository;
 import faang.school.accountservice.repository.BalanceRepository;
@@ -79,27 +78,32 @@ public class BalanceService {
     public BalanceDto reduceBalance(Balance balance, BigDecimal amount) {
 
         balanceValidator.isBalanceValid(balance);
-    public BalanceAuditDto getBalanceAudit(long idAudit) {
-        BalanceAudit balanceAudit = findEntityById(idAudit, balanceAuditRepository);
-        return balanceAuditMapper.mapEntityToDto(balanceAudit);
-    }
 
         balanceValidator.isBalanceValidForWithdrawal(balance, amount);
         balance.setAuthorizationBalance(balance.getAuthorizationBalance().subtract(amount));
 
         balanceRepository.save(balance);
         return balanceMapper.toDto(balance);
-    private <T> T findEntityById(long id, CrudRepository<T, Long> repository) {
-        Optional<T> entity = repository.findById(id);
-        balanceServiceValidator.checkExistence(entity);
-        return entity.get();
+    }
+
+    public BalanceAuditDto getBalanceAudit(long idAudit) {
+        BalanceAudit balanceAudit = findEntityById(idAudit, balanceAuditRepository);
+        return balanceAuditMapper.mapEntityToDto(balanceAudit);
     }
 
     private Balance getBalanceByAccountId(Long accountId) {
         return balanceRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new DataNotFoundException("Balance not found for account id: " + accountId));
+    }
+
     private void saveBalanceAudit(Balance balance) {
         BalanceAudit balanceAudit = balanceAuditMapper.mapBalanceToBalanceAudit(balance);
         balanceAuditRepository.save(balanceAudit);
+    }
+
+    private <T> T findEntityById(long id, CrudRepository<T, Long> repository) {
+        Optional<T> entity = repository.findById(id);
+        balanceServiceValidator.checkExistence(entity);
+        return entity.get();
     }
 }

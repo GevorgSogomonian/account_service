@@ -1,6 +1,5 @@
 package faang.school.accountservice.entity;
 
-import faang.school.accountservice.model.Account;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

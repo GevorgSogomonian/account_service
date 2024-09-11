@@ -1,6 +1,5 @@
 package faang.school.accountservice.entity;
 
-import faang.school.accountservice.entity.Balance;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
@@ -77,7 +76,4 @@ public class Account {
     @Version
     @Column(name = "version", nullable = false)
     private int version;
-
-    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
-    private Balance balance;
 }
