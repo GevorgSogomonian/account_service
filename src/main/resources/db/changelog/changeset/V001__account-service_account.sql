@@ -18,4 +18,4 @@ CREATE TABLE account
             (user_id IS NOT NULL AND project_id IS NULL) OR
             (user_id IS NULL AND project_id IS NOT NULL)
 
-)
+);
