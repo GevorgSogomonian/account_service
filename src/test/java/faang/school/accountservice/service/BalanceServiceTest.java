@@ -1,13 +1,19 @@
 package faang.school.accountservice.service;
 
 import faang.school.accountservice.balanceValidator.BalanceValidator;
+import faang.school.accountservice.dto.BalanceAuditDto;
 import faang.school.accountservice.dto.BalanceDto;
 import faang.school.accountservice.entity.Account;
 import faang.school.accountservice.entity.Balance;
+import faang.school.accountservice.entity.BalanceAudit;
 import faang.school.accountservice.exception.DataNotFoundException;
+import faang.school.accountservice.mapper.BalanceAuditMapper;
 import faang.school.accountservice.mapper.BalanceMapperImpl;
+import faang.school.accountservice.model.Account;
 import faang.school.accountservice.repository.AccountRepository;
+import faang.school.accountservice.repository.BalanceAuditRepository;
 import faang.school.accountservice.repository.BalanceRepository;
+import faang.school.accountservice.validator.BalanceServiceValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,17 +49,29 @@ public class BalanceServiceTest {
     @Spy
     private BalanceValidator balanceValidator;
 
+    @Mock
+    private BalanceAuditRepository balanceAuditRepository;
+
+    @Mock
+    private BalanceAuditMapper balanceAuditMapper;
+
+    @Mock
+    private BalanceServiceValidator balanceServiceValidator;
+
     @InjectMocks
     private BalanceService balanceService;
-
 
     private BalanceDto balanceDto;
     private Account account;
     private Balance balance;
-
+    private BalanceAudit balanceAudit;
+    private long idAudit;
+    private BalanceAuditDto balanceAuditDto;
 
     @BeforeEach
     public void setup() {
+        idAudit = 1L;
+
         balanceDto = BalanceDto.builder()
                 .accountId(1L)
                 .authorizationBalance(BigDecimal.ZERO)
@@ -70,6 +88,17 @@ public class BalanceServiceTest {
                 .authorizationBalance(BigDecimal.ZERO)
                 .currentBalance(BigDecimal.ZERO)
                 .build();
+
+        balanceAudit = BalanceAudit.builder()
+                .id(1L)
+                .accountId(account.getId())
+                .transactionId(1L)
+                .versionBalance(1L)
+                .authorizationBalance(BigDecimal.ZERO)
+                .currentBalance(BigDecimal.ZERO)
+                .build();
+
+        balanceAuditDto = BalanceAuditDto.builder().build();
     }
 
     @Test

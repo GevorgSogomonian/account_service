@@ -4,61 +4,56 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
-@Table(name = "balance")
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@Table(name = "balance_audit")
 @Builder
-public class Balance {
+@AllArgsConstructor
+@RequiredArgsConstructor
+public class BalanceAudit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @OneToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
+    @Column(name = "account_id", nullable = false)
+    private long accountId;
 
-    @Column(name = "authorization_balance")
+    @Column(name = "version_balance", nullable = false)
+    private long versionBalance;
+
+    @Column(name = "authorization_balance", nullable = false)
     private BigDecimal authorizationBalance;
 
-    @Column(name = "current_balance")
+    @Column(name = "current_balance", nullable = false)
     private BigDecimal currentBalance;
+
+    @Column(name = "transaction_id", nullable = false)
+    @Version
+    private long transactionId;
+
+    @ManyToOne
+    @JoinColumn(name = "balance_id", nullable = false)
+    private Balance balance;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @Version
-    @Column(name = "version")
-    private long version;
-
-    @OneToMany(mappedBy = "balance")
-    private List<BalanceAudit> balanceAudits;
 }
