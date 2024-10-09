@@ -8,7 +8,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
@@ -20,6 +20,20 @@ spring:
 server:
   port: 8090
 
+project-service:
+  host: localhost
+  port: 8082
+user-service:
+  host: localhost
+  port: 8080
+
 logging:
   level:
     root: info
+
+account:
+  number:
+    pattern: 1000_0000_0000_0000L
+    cron: "0 0 0 * * *"
+    batch:
+      size: 10
